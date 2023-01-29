@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical support </title>
+</head>
+<style>
+    body{
+        width: 100vh;
+        height: 100vh;
+    }
+    #container{
+        width: 400px;
+    }
+    #forms{
+        display: flex;
+        gap: 10px;
+        /* position: fixed; */
+        bottom: 0;
+        width: 80%;
+        padding: 10px;
+    }
+    #input{
+        width: 100%;
+    }
+    #messages{
+        display: flex;
+        flex-direction: column;
+    }
+    #messages div{
+        width: 100%;
+        border: 1px solid rgba(38, 151, 66, 0.548);
+        border-radius: 25px;
+        padding: 1% 3%;
+        margin: 1%;
+        font-size: 18px;
+        background-color: rgb(201, 42, 42);
+        color: white;
+    }
+    #messages span{
+        width: 100%;
+        border: 1px solid rgb(221, 96, 96);
+        border-radius: 12px;
+        padding: 1% 2%;
+        margin: 1%;
+        text-align: center;
+        font-size: 16px;
+        background-color: rgba(210, 18, 18, 0.445);
+        color: white;
+    }
+</style>
+<body>
+    
+    <div id="container">
+        <div id="messages"></div>
+            <form id="forms" >
+                <input autocomplete="off" id="input" type="text">
+                <button id="send">Send</button>
+            </form>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const ws = io();
+
+        const form = document.getElementById("forms")
+        const input = document.getElementById("input")
+        const messagesdiv = document.getElementById("messages")
+
+        input,addEventListener("keyup", ()=>{
+            ws.emit("typing")
+        })
+        ws.on("typing", ()=>{
+            messagesdiv.innerText ="Other user is typing..."
+        })
+
+        form.addEventListener("submit", (e)=>{
+            e.preventDefault()
+
+            const textMessage = input.value;
+
+            ws.emit("new message", textMessage)
+
+           
+        })
+        ws.on("new message",(msg)=>{
+            const span = document.createElement("div")
+            span.innerText = msg;
+            messagesdiv.appendChild(span)
+        })
+        ws.on("new user", (history)=>{
+            console.log("History", history);
+            const alert = document.createElement("span")
+            alert.innerText = "new user joined the chat";
+            messagesdiv.appendChild(alert)
+        })
+
+        ws.on("history",(hs)=>{
+            if(hs.length >0){
+                for(const h of hs){
+                    const span = document.createElement("div")
+                    span.innerText = h;
+                    messagesdiv.appendChild(span)
+                }
+            }
+            // console.log("history",hs);
+        })
+        
+    </script>
+</body>
+</html>
